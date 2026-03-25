@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ADL Finance — Configuration borne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --adl: #5BC8F5;
+    --adl-dark: #2aaee0;
+    --white: #fff;
+    --gray: #f4f7fb;
+    --border: #d0e8f5;
+    --text: #1a3a4a;
+    --muted: #7aaabf;
+  }
+  html, body {
+    height: 100%;
+    font-family: 'Outfit', sans-serif;
+    background: var(--gray);
+    color: var(--text);
+  }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; }
+
+  .topbar {
+    width: 100%;
+    background: var(--adl);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar a { color: white; text-decoration: none; font-size: 20px; }
+  .topbar h1 { font-size: 18px; font-weight: 600; color: white; }
+
+  /* PIN SCREEN */
+  #pin-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 60px 24px;
+    width: 100%;
+    max-width: 380px;
+  }
+  #pin-screen h2 { font-size: 22px; font-weight: 600; color: var(--text); }
+  #pin-screen p  { font-size: 14px; color: var(--muted); text-align: center; }
+
+  .pin-dots {
+    display: flex;
+    gap: 14px;
+  }
+  .dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--adl);
+    background: transparent;
+    transition: background 0.15s;
+  }
+  .dot.filled { background: var(--adl); }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 72px);
+    gap: 12px;
+  }
+  .numpad button {
+    height: 64px;
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.12s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .numpad button:active { background: var(--adl); color: white; transform: scale(0.93); }
+  .numpad button.clear { font-size: 14px; font-weight: 400; color: var(--muted); }
+  .numpad button.zero  { grid-column: 2; }
+
+  .pin-error {
+    font-size: 13px;
+    color: #e05858;
+    min-height: 20px;
+  }
+
+  /* CONFIG SCREEN */
+  #config-screen { display: none; width: 100%; max-width: 680px; padding: 28px 20px 60px; }
+
+  .section {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .section h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--adl-dark);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section h3::before {
+    content: '';
+    display: block;
+    width: 3px; height: 16px;
+    background: var(--adl);
+    border-radius: 2px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 400;
+  }
+  .field input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--gray);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus { border-color: var(--adl); background: white; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .hint a { color: var(--adl-dark); }
+
+  .btn-save {
+    width: 100%;
+    padding: 14px;
+    background: var(--adl);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .btn-save:active { background: var(--adl-dark); transform: scale(0.98); }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .badge-ok {
+    display: inline-block;
+    background: #e6f7ee;
+    color: #1a7a40;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+  }
+  .save-msg {
+    text-align: center;
+    font-size: 13px;
+    color: #1a7a40;
+    margin-top: 10px;
+    min-height: 20px;
+  }
+
+  .test-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn-test {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 1.5px solid var(--adl);
+    background: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--adl-dark);
+    cursor: pointer;
+    transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-test:active { background: var(--adl); color: white; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">←</a>
+  <h1>Configuration — Borne ADL Finance</h1>
+</div>
+
+<!-- ── PIN SCREEN ── -->
+<div id="pin-screen">
+  <h2>Accès sécurisé</h2>
+  <p>Entrez le code PIN pour accéder<br>aux paramètres de la borne</p>
+  <div class="pin-dots">
+    <div class="dot" id="d0"></div>
+    <div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="d3"></div>
+  </div>
+  <div class="numpad">
+    <button onclick="pinPress('1')">1</button>
+    <button onclick="pinPress('2')">2</button>
+    <button onclick="pinPress('3')">3</button>
+    <button onclick="pinPress('4')">4</button>
+    <button onclick="pinPress('5')">5</button>
+    <button onclick="pinPress('6')">6</button>
+    <button onclick="pinPress('7')">7</button>
+    <button onclick="pinPress('8')">8</button>
+    <button onclick="pinPress('9')">9</button>
+    <button class="clear" onclick="pinClear()">⌫</button>
+    <button class="zero" onclick="pinPress('0')">0</button>
+    <button class="clear" onclick="pinReset()">C</button>
+  </div>
+  <p class="pin-error" id="pin-err"></p>
+  <p style="font-size:11px;color:var(--muted);">PIN par défaut : 7301 — modifiable ci-dessous</p>
+</div>
+
+<!-- ── CONFIG SCREEN ── -->
+<div id="config-screen">
+
+  <div class="section">
+    <h3>Serveur ntfy</h3>
+    <div class="field">
+      <label>URL du serveur ntfy</label>
+      <input type="url" id="ntfy_server" placeholder="https://ntfy.sh" />
+    </div>
+    <p class="hint">
+      Laissez <strong>https://ntfy.sh</strong> pour utiliser le serveur public gratuit.<br>
+      Ou hébergez votre propre instance (<a href="https://docs.ntfy.sh/install/" target="_blank">docs.ntfy.sh</a>) pour plus de confidentialité.
+    </p>
+  </div>
+
+  <div class="section">
+    <h3>Topics ntfy par service</h3>
+    <p class="hint" style="margin-bottom:14px;">
+      Choisissez un nom de topic unique et difficile à deviner (ex: <em>adl-assurance-xk29q</em>).<br>
+      Les collègues s'abonnent à ce topic depuis l'app ntfy sur leur PC ou téléphone.
+    </p>
+    <div class="field">
+      <label>Topic — Assurances</label>
+      <input type="text" id="topic_assurance" placeholder="adl-assurance-xxxxxx" />
+    </div>
+    <div class="field">
+      <label>Topic — Crédits</label>
+      <input type="text" id="topic_credit" placeholder="adl-credit-xxxxxx" />
+    </div>
+    <div class="field">
+      <label>Topic — Sinistres</label>
+      <input type="text" id="topic_sinistre" placeholder="adl-sinistres-xxxxxx" />
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Test des notifications</h3>
+    <p class="hint" style="margin-bottom:14px;">Envoyez une notification de test pour vérifier que les collègues la reçoivent bien.</p>
+    <div class="test-row">
+      <button class="btn-test" onclick="testNotif('assurance')">Tester Assurances</button>
+      <button class="btn-test" onclick="testNotif('credit')">Tester Crédits</button>
+      <button class="btn-test" onclick="testNotif('sinistre')">Tester Sinistres</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Code PIN</h3>
+    <div class="field">
+      <label>Nouveau code PIN (4 chiffres)</label>
+      <input type="password" id="new_pin" maxlength="4" inputmode="numeric" placeholder="••••" />
+    </div>
+  </div>
+
+  <button class="btn-save" onclick="saveConfig()">Enregistrer la configuration</button>
+  <p class="save-msg" id="save-msg"></p>
+  <button class="btn-secondary" onclick="goBack()">← Retour à la borne</button>
+
+</div>
+
+<script>
+let pinEntry = '';
+const STORED_PIN = () => (JSON.parse(localStorage.getItem('adl_config') || '{}').pin) || '7301';
+
+function pinPress(d) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += d;
+  updateDots();
+  if (pinEntry.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+function pinClear() { pinEntry = pinEntry.slice(0,-1); updateDots(); document.getElementById('pin-err').textContent = ''; }
+function pinReset() { pinEntry = ''; updateDots(); document.getElementById('pin-err').textContent = ''; }
+function updateDots() {
+  for(let i=0;i<4;i++) {
+    document.getElementById('d'+i).classList.toggle('filled', i < pinEntry.length);
+  }
+}
+function checkPin() {
+  if (pinEntry === STORED_PIN()) {
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('config-screen').style.display = 'block';
+    loadConfig();
+  } else {
+    document.getElementById('pin-err').textContent = 'Code incorrect, réessayez';
+    pinEntry = '';
+    updateDots();
+  }
+}
+
+function loadConfig() {
+  const c = JSON.parse(localStorage.getItem('adl_config') || '{}');
+  document.getElementById('ntfy_server').value     = c.ntfy_server     || 'https://ntfy.sh';
+  document.getElementById('topic_assurance').value = c.topic_assurance || '';
+  document.getElementById('topic_credit').value    = c.topic_credit    || '';
+  document.getElementById('topic_sinistre').value  = c.topic_sinistre  || '';
+}
+
+function saveConfig() {
+  const c = JSON.parse(localStorage.getItem('adl_config') || '{}');
+  c.ntfy_server     = document.getElementById('ntfy_server').value.trim() || 'https://ntfy.sh';
+  c.topic_assurance = document.getElementById('topic_assurance').value.trim();
+  c.topic_credit    = document.getElementById('topic_credit').value.trim();
+  c.topic_sinistre  = document.getElementById('topic_sinistre').value.trim();
+  const newPin = document.getElementById('new_pin').value.trim();
+  if (newPin.length === 4 && /^\d+$/.test(newPin)) c.pin = newPin;
+  localStorage.setItem('adl_config', JSON.stringify(c));
+  const msg = document.getElementById('save-msg');
+  msg.textContent = '✓ Configuration sauvegardée !';
+  setTimeout(() => msg.textContent = '', 3000);
+}
+
+async function testNotif(service) {
+  const c = JSON.parse(localStorage.getItem('adl_config') || '{}');
+  const server = c.ntfy_server || 'https://ntfy.sh';
+  const topics = { assurance: c.topic_assurance, credit: c.topic_credit, sinistre: c.topic_sinistre };
+  const labels = { assurance: 'Assurances', credit: 'Crédits', sinistre: 'Sinistres' };
+  const topic = topics[service];
+  if (!topic) { alert('Entrez d\'abord un topic pour ce service.'); return; }
+  try {
+    await fetch(`${server}/${topic}`, {
+      method: 'POST',
+      headers: {
+        'Title': encodeURIComponent(`ADL Finance - TEST ${labels[service]}`),
+        'Tags': 'test_tube,bell',
+        'Priority': '3'
+      },
+      body: `Ceci est une notification de test pour le service ${labels[service]}.`
+    });
+    alert(`Notification de test envoyée sur "${topic}" !`);
+  } catch(e) {
+    alert('Erreur d\'envoi — vérifiez l\'URL du serveur ntfy.');
+  }
+}
+
+function goBack() { window.location.href = 'index.html'; }
+</script>
+</body>
+</html>
